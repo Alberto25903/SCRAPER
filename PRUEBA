@@ -1,0 +1,36 @@
+const { Actor } = require('apify');
+
+Actor.main(async () => {
+    const input = await Actor.getInput();
+
+    const browser = await Actor.launchPuppeteer();
+    const page = await browser.newPage();
+
+    // URL de la web de reservas
+    await page.goto('https://citaonline.igaleno.com/2f1445c0db7ed9dd2f6a16a6ee2bc388/t/eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczpcL1wvYXBwLmlnYWxlbm8uY29tXC8iLCJzdWIiOiJhcmVhLXBhY2llbnRlIiwiaXNzIjoiaHR0cHM6XC9cL2FwcC5pZ2FsZW5vLmNvbVwvIiwiZW1wcmVzYSI6NSwidGVuYW50IjoiMTM5ODAzMDc3IiwianRpIjoiMzI1YmMwOWMtMjdhOC00NjM2LWJkOGEtNjBjMmI4NjM0MGVlIn0.FwV_rdaKLqbYe5i4R7zZP7h9cuNMM_qE24BcvFzR3olTatiyXHh-dcIv0qDNl0zcZ4cc5nrEf7--ejqXspQVpF3HAiDCuxzCh72F5odQ3e_h0oMT2oNSLOCsGTHgrZq8V0rR-EWmi4oTnjkn874Kc8UtkgAxVH5VTXf7yQYzRl0/area-publica/crear-cita', {
+        waitUntil: 'networkidle2',
+    });
+
+    // Esperar a que cargue el selector del servicio
+    await page.waitForSelector('select#id-servicio'); // Este selector es un ejemplo. Ajusta según inspección real.
+
+    // Seleccionar un servicio (ajusta el valor real según la opción que desees)
+    await page.select('select#id-servicio', '1'); // <-- Aquí va el "value" del servicio (tendrás que inspeccionar el HTML)
+
+    // Esperar que se cargue el calendario o las citas
+    await page.waitForTimeout(3000); // Puedes usar waitForSelector si sabes cuál aparece
+
+    // Extraer contenido de las fechas disponibles
+    const citas = await page.evaluate(() => {
+        // Ajusta esto según el HTML real del calendario
+        const elementos = document.querySelectorAll('.clase-de-fechas-disponibles'); // <-- Ajusta clase real
+        return Array.from(elementos).map(el => el.innerText.trim());
+    });
+
+    console.log('CITAS EXTRAÍDAS:', citas);
+
+    // Guardar los resultados
+    await Actor.pushData(citas);
+
+    await browser.close();
+});
