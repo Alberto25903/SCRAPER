@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agencia Pixel</title>
+  <meta name="description" content="Una agencia de agentes IA en una sala de estar retro: encárgales tareas y míralos debatir, investigar y vivir su tiempo libre.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">▣</span>
+      <div>
+        <h1>AGENCIA PIXEL</h1>
+        <p class="tagline">Agentes IA con vida propia</p>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="clock" id="clock" title="Hora en la agencia">Día 1 · 09:00</div>
+      <div class="speed" role="group" aria-label="Velocidad">
+        <button type="button" data-speed="0" title="Pausa">⏸</button>
+        <button type="button" data-speed="1" class="on" title="Normal">▶</button>
+        <button type="button" data-speed="2" title="Rápido">▶▶</button>
+        <button type="button" data-speed="4" title="Muy rápido">▶▶▶</button>
+      </div>
+      <button type="button" class="mode" id="modeBtn" title="Ajustes de IA">🟡 Modo simulado</button>
+      <button type="button" class="icon-btn" id="settingsBtn" title="Ajustes" aria-label="Ajustes">⚙</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage-col">
+      <div class="stage-frame">
+        <div class="stage" id="stage">
+          <canvas id="game" width="384" height="224" aria-label="Sala de estar de la agencia"></canvas>
+          <div id="overlay" class="overlay"></div>
+        </div>
+      </div>
+
+      <form id="taskForm" class="taskbar" autocomplete="off">
+        <label class="sr-only" for="taskInput">Encargo</label>
+        <input id="taskInput" type="text" maxlength="400" placeholder="Encarga algo a la agencia… (p. ej. «Investigad la historia de los videojuegos»)">
+        <label class="sr-only" for="assignee">Asignar a</label>
+        <select id="assignee">
+          <option value="equipo">👥 Todo el equipo</option>
+          <option value="nova">🔎 Nova</option>
+          <option value="byte">💻 Byte</option>
+          <option value="luma">🎨 Luma</option>
+        </select>
+        <button type="submit" class="primary">Encargar</button>
+      </form>
+      <div class="chips" id="chips"></div>
+      <div class="tasks" id="tasks"></div>
+    </section>
+
+    <aside class="panel">
+      <nav class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="team" class="on">Equipo</button>
+        <button type="button" role="tab" data-tab="log">Registro <span class="badge" id="logBadge"></span></button>
+        <button type="button" role="tab" data-tab="results">Resultados <span class="badge" id="resBadge"></span></button>
+      </nav>
+      <div class="tab-body on" data-body="team" id="team"></div>
+      <div class="tab-body" data-body="log"><ol class="log" id="log"></ol></div>
+      <div class="tab-body" data-body="results"><div id="results" class="results"><p class="empty">Todavía no hay informes. ¡Encarga algo al equipo!</p></div></div>
+    </aside>
+  </main>
+
+  <dialog id="settings" class="dlg">
+    <form method="dialog" id="settingsForm">
+      <h2>⚙ Ajustes de IA</h2>
+      <p class="hint">Sin API key los agentes funcionan en <b>modo simulado</b> (improvisan con plantillas). Con tu API key de Claude piensan, investigan y debaten de verdad.</p>
+      <label>API key de Claude
+        <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+      </label>
+      <label class="row"><input type="checkbox" id="remember"> Recordar la key en este navegador</label>
+      <label>Modelo
+        <select id="model">
+          <option value="claude-opus-5-5">Claude Opus 5.5 (el más capaz)</option>
+          <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (equilibrado)</option>
+          <option value="claude-haiku-5-5">Claude Haiku 5.5 (rápido y barato)</option>
+        </select>
+      </label>
+      <label class="row"><input type="checkbox" id="webSearch"> Búsqueda web real cuando usan el ordenador</label>
+      <label class="row"><input type="checkbox" id="aiIdle"> Charlas libres generadas por IA (consume más)</label>
+      <p class="hint small">🔒 La key se usa solo desde tu navegador para llamar directamente a la API de Anthropic. No la uses en ordenadores compartidos.</p>
+      <div class="actions">
+        <button type="button" id="clearKey">Borrar key</button>
+        <button value="save" class="primary">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="reportDlg" class="dlg wide">
+    <div class="report-head">
+      <div id="reportMeta" class="meta"></div>
+      <div class="actions">
+        <button type="button" id="copyReport">Copiar</button>
+        <button type="button" id="downloadReport">Descargar .md</button>
+        <button type="button" id="closeReport" class="primary">Cerrar</button>
+      </div>
+    </div>
+    <article id="reportBody" class="md"></article>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/agents.js"></script>
+  <script src="js/life.js"></script>
+  <script src="js/brains.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
