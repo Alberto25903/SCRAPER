@@ -29,9 +29,12 @@ const G = {
   booksOut: { shelfA: 0, shelfB: 0 },
   board: { marks: [], title: '' },
   laptop: false,
+  inArtifact: false,  // abierta como página publicada en claude.ai
+  sampleFn: null,     // acceso a Claude con la cuenta de quien la ve
+  downloads: null,
   settings: {
     apiKey: '', remember: false, model: 'claude-opus-5-5',
-    webSearch: true, aiIdle: false,
+    webSearch: true, aiIdle: false, useAccount: false,
   },
 };
 

@@ -72,7 +72,13 @@
   <dialog id="settings" class="dlg">
     <form method="dialog" id="settingsForm">
       <h2>⚙ Ajustes de IA</h2>
-      <p class="hint">Sin API key los agentes funcionan en <b>modo simulado</b> (improvisan con plantillas). Con tu API key de Claude piensan, investigan y debaten de verdad.</p>
+      <p class="hint">Sin IA los agentes funcionan en <b>modo simulado</b>: improvisan con frases preparadas y no gastan nada. Con Claude piensan, investigan y debaten de verdad.</p>
+      <div id="accountSection" hidden>
+        <label class="row"><input type="checkbox" id="useAccount"> Usar mi cuenta de Claude</label>
+        <p class="hint small">Cada encargo hace entre 5 y 12 consultas a Claude, que cuentan para el uso de tu plan como si fueran mensajes en el chat. Claude te pedirá permiso la primera vez.</p>
+      </div>
+      <p class="hint small" id="noAccountNote" hidden>Esta vista no puede usar Claude: los agentes funcionarán en modo simulado.</p>
+      <div id="keySection">
       <label>API key de Claude
         <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
       </label>
@@ -85,8 +91,9 @@
         </select>
       </label>
       <label class="row"><input type="checkbox" id="webSearch"> Búsqueda web real cuando usan el ordenador</label>
+      </div>
       <label class="row"><input type="checkbox" id="aiIdle"> Charlas libres generadas por IA (consume más)</label>
-      <p class="hint small">🔒 La key se usa solo desde tu navegador para llamar directamente a la API de Anthropic. No la uses en ordenadores compartidos.</p>
+      <p class="hint small" id="keyNote">🔒 La key se usa solo desde tu navegador para llamar directamente a la API de Anthropic. No la uses en ordenadores compartidos.</p>
       <div class="actions">
         <button type="button" id="clearKey">Borrar key</button>
         <button value="save" class="primary">Guardar</button>

@@ -58,6 +58,21 @@ const UI = {
       input: $('taskInput'), assignee: $('assignee'), modeBtn: $('modeBtn'),
     };
     this.loadSettings();
+    // ¿Abierta como página publicada en claude.ai?
+    if (window.claude && typeof window.claude.use === 'function') {
+      G.inArtifact = true;
+      for (const id of ['keySection', 'keyNote', 'clearKey']) $(id).hidden = true;
+      window.claude.use('sample').then((s) => {
+        G.sampleFn = s;
+        $('accountSection').hidden = !s;
+        $('noAccountNote').hidden = !!s;
+        this.updateMode();
+      });
+      window.claude.use('downloads').then((d) => {
+        G.downloads = d;
+        $('downloadReport').hidden = !d;
+      });
+    }
     this.buildTeam();
     this.buildChips();
 
@@ -86,6 +101,7 @@ const UI = {
       $('model').value = G.settings.model;
       $('webSearch').checked = G.settings.webSearch;
       $('aiIdle').checked = G.settings.aiIdle;
+      $('useAccount').checked = G.settings.useAccount;
       dlg.showModal();
     };
     $('settingsBtn').addEventListener('click', open);
@@ -98,6 +114,7 @@ const UI = {
         model: $('model').value,
         webSearch: $('webSearch').checked,
         aiIdle: $('aiIdle').checked,
+        useAccount: $('useAccount').checked,
       });
       this.saveSettings();
       this.updateMode();
@@ -111,11 +128,17 @@ const UI = {
       try { await navigator.clipboard.writeText(this.current.md); this.toast('Copiado al portapapeles'); }
       catch (e) { this.toast('No se ha podido copiar'); }
     });
-    $('downloadReport').addEventListener('click', () => {
+    $('downloadReport').addEventListener('click', async () => {
+      const filename = `informe-${this.current.id}.md`;
+      if (G.downloads) {
+        try { await G.downloads.save({ filename, data: this.current.md }); }
+        catch (e) { if (e.code !== 'declined') this.toast('No se ha podido descargar. Usa «Copiar».'); }
+        return;
+      }
       const blob = new Blob([this.current.md], { type: 'text/markdown' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `informe-${this.current.id}.md`;
+      a.download = filename;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     });
@@ -141,7 +164,8 @@ const UI = {
   updateMode() {
     const ai = Brain.hasAI();
     const names = { 'claude-opus-5-5': 'Opus 5.5', 'claude-sonnet-5-5': 'Sonnet 5.5', 'claude-haiku-5-5': 'Haiku 5.5' };
-    this.els.modeBtn.textContent = ai ? `🟢 IA real · ${names[G.settings.model] || G.settings.model}` : '🟡 Modo simulado';
+    const label = Brain.backend() === SampleBrain ? 'tu cuenta de Claude' : (names[G.settings.model] || G.settings.model);
+    this.els.modeBtn.textContent = ai ? `🟢 IA real · ${label}` : '🟡 Modo simulado';
     this.els.modeBtn.classList.toggle('ai', ai);
   },
 

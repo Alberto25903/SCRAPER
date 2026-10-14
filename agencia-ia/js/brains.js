@@ -149,6 +149,7 @@ const TEAM_DESC = 'La Agencia Pixel es un pequeño equipo de tres agentes IA que
 
 const ClaudeBrain = {
   _client: null, _key: null,
+  canSearch: true,
 
   async client() {
     if (!this._client || this._key !== G.settings.apiKey) {
@@ -230,7 +231,7 @@ const ClaudeBrain = {
   },
 
   async work(agent, task, sub, lugar) {
-    const web = lugar === 'ordenador' && G.settings.webSearch && !/haiku/.test(G.settings.model);
+    const web = this.canSearch && lugar === 'ordenador' && G.settings.webSearch && !/haiku/.test(G.settings.model);
     const user = `Tarea del cliente: """${task}"""\nTu parte del trabajo: ${sub}\nTrabajas desde ${PLACES[lugar] || lugar}.\n`
       + `Haz tu parte de verdad, con contenido útil y concreto${web ? ' (puedes buscar en la web si te ayuda)' : ''}. `
       + `Si te toca programar, incluye el código.\n`
@@ -301,18 +302,52 @@ const ClaudeBrain = {
 };
 
 // ------------------------------------------------------------
+//  Cerebro "tu cuenta": en la página publicada en claude.ai, pregunta a
+//  Claude con la cuenta de quien la está viendo (gasta su uso del plan)
+// ------------------------------------------------------------
+const SampleBrain = Object.assign(Object.create(ClaudeBrain), {
+  canSearch: false,
+  async call({ system, user, effort = 'low', schema = null }) {
+    const prompt = `${system}\n\n${user}`;
+    const modelTier = effort === 'low' ? 'quick' : 'default';
+    if (schema) {
+      const value = await G.sampleFn.json(
+        `${prompt}\n\nResponde solo con un objeto JSON que cumpla este JSON Schema:\n${JSON.stringify(schema)}`,
+        { modelTier },
+      );
+      return JSON.stringify(value);
+    }
+    const { text } = await G.sampleFn(prompt, { modelTier, cache: false });
+    return text.trim();
+  },
+});
+
+// ------------------------------------------------------------
 //  Fachada: usa Claude si hay API key y, si algo falla, improvisa
 // ------------------------------------------------------------
 const Brain = {
-  hasAI() { return !!G.settings.apiKey; },
+  backend() {
+    if (G.settings.useAccount && G.sampleFn) return SampleBrain;
+    if (G.settings.apiKey && !G.inArtifact) return ClaudeBrain;
+    return null;
+  },
+  hasAI() { return !!this.backend(); },
   async _try(name, args, agent) {
-    if (this.hasAI()) {
+    const be = this.backend();
+    if (be) {
       try {
-        return await ClaudeBrain[name](...args);
+        return await be[name](...args);
       } catch (e) {
         console.warn(e);
-        UI.log(`⚠️ Error de la API (${name}): ${e.message || e}. ${agent ? agent.name + ' improvisa.' : 'Se improvisa.'}`, 'error');
+        UI.log(`⚠️ Error de Claude (${name}): ${e.message || e.code || e}. ${agent ? agent.name + ' improvisa.' : 'Se improvisa.'}`, 'error');
         if (e.status === 401) UI.toast('API key no válida. Revisa ⚙ Ajustes.');
+        if (e.code === 'not_granted' || e.code === 'sampling_disabled' || e.code === 'not_declared') {
+          G.settings.useAccount = false;
+          UI.saveSettings();
+          UI.updateMode();
+          UI.toast('Sin permiso para usar tu cuenta de Claude: vuelvo al modo simulado.');
+        }
+        if (e.code === 'rate_limited') UI.toast('Has llegado al límite de uso de Claude por ahora. Los agentes improvisan.');
       }
     }
     await new Promise((r) => setTimeout(r, rand(400, 1200)));
@@ -322,5 +357,5 @@ const Brain = {
   work(agent, task, sub, lugar, tipo) { return this._try('work', [agent, task, sub, lugar, tipo], agent); },
   turn(agent, task, transcript, kind) { return this._try('turn', [agent, task, transcript, kind], agent); },
   synthesize(task, transcript, contributions, tipo, team) { return this._try('synthesize', [task, transcript, contributions, tipo, team]); },
-  chitchat(a, b) { return ClaudeBrain.chitchat(a, b); },
+  chitchat(a, b) { return this.backend().chitchat(a, b); },
 };

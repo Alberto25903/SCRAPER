@@ -16,9 +16,11 @@
   --shadow: 0 4px 0 #0a0812;
   --pixel: 'Press Start 2P', monospace;
   --term: 'VT323', monospace;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
   background: var(--bg);
@@ -180,7 +182,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 @keyframes pop { from { transform: translateY(10px); opacity: 0; } }
 
 @media (max-width: 600px) {
-  .layout { padding: 10px 8px; }
+  .layout { padding: 10px 16px; }
   .brand h1 { font-size: 12px; }
   .stage-frame { padding: 3px; border-width: 3px; }
   .bubble { font-size: 15px; max-width: 170px; }

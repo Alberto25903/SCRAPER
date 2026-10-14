@@ -37,9 +37,11 @@ Además hay ciclo de día y noche (el reloj de la pared y la ventana cambian, po
 
 ## IA real con Claude (opcional)
 
-Sin configuración funciona en **modo simulado**: los agentes improvisan con plantillas.
+Sin configuración funciona en **modo simulado**: los agentes improvisan con plantillas y no gastan nada.
 
-Para que piensen de verdad, abre **⚙ Ajustes** y pega tu API key de Claude:
+**Como página publicada en claude.ai**: en **⚙ Ajustes** marca «Usar mi cuenta de Claude». Las consultas cuentan para el uso de tu plan de Claude (entre 5 y 12 por encargo) y Claude te pide permiso la primera vez. Ahí no se usa API key.
+
+**Abriendo el `index.html` en local**: pega tu API key de Claude en **⚙ Ajustes** (se factura aparte, en la consola de Anthropic):
 
 - Cada agente tiene su propia personalidad (prompt de sistema) y habla por turnos viendo la conversación.
 - Luma planifica y reparte con salida estructurada (JSON).

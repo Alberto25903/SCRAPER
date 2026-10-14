@@ -14,7 +14,7 @@ G.agents.forEach((a, i) => { a.idleUntil = 600 + i * 900; });
 
 UI.init();
 UI.log('🏢 La Agencia Pixel abre sus puertas. Nova, Byte y Luma están listos para trabajar (o para jugar a la consola).', 'done');
-if (!Brain.hasAI()) UI.log('🟡 Modo simulado. Añade tu API key de Claude en ⚙ Ajustes para que los agentes piensen de verdad.', 'task');
+if (!Brain.hasAI()) UI.log('🟡 Modo simulado. Activa Claude en ⚙ Ajustes para que los agentes piensen de verdad.', 'task');
 
 // Ajusta el tamaño del lienzo al espacio disponible
 function resize() {
